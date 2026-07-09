@@ -43,19 +43,26 @@ export function formatClock(iso: string | null) {
   return format(parseISO(iso), "HH:mm");
 }
 
+function capitalizePt(value: string) {
+  if (!value) return value;
+  return value.charAt(0).toUpperCase() + value.slice(1);
+}
+
 export function formatFriendlyDate(dateKey: string) {
   const date = parseISO(dateKey);
   if (isToday(date)) return "Hoje";
   if (isYesterday(date)) return "Ontem";
-  return format(date, "EEEE, d MMM", { locale: ptBR });
+  return capitalizePt(format(date, "EEEE, d MMM", { locale: ptBR }));
 }
 
 export function formatLongDate(dateKey: string) {
-  return format(parseISO(dateKey), "EEEE, d 'de' MMMM", { locale: ptBR });
+  return capitalizePt(
+    format(parseISO(dateKey), "EEEE, d 'de' MMMM", { locale: ptBR }),
+  );
 }
 
 export function weekdayLabel(date = new Date()) {
-  return format(date, "EEEE", { locale: ptBR });
+  return capitalizePt(format(date, "EEEE", { locale: ptBR }));
 }
 
 export function isStudyDay(date = new Date(), weekdaysOnly = true) {

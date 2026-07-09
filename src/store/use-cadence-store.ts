@@ -63,7 +63,7 @@ export const useCadenceStore = create<CadenceState>((set, get) => ({
       settings: state.settings,
       session: state.session,
       history: state.history,
-      celebration: Boolean(state.session.completedAt),
+      celebration: false,
     });
   },
 
