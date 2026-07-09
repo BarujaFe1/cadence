@@ -84,20 +84,26 @@ npm run build
 npm start
 ```
 
+## Repositório
+
+- GitHub: [github.com/BarujaFe1/cadence](https://github.com/BarujaFe1/cadence)
+
 ## Deploy
 
 ### Vercel
 
-1. Publique o repositório no GitHub
-2. Importe o projeto na Vercel
-3. Framework preset: **Next.js**
-4. Deploy — sem variáveis de ambiente necessárias
+O projeto já está criado e conectado ao GitHub na conta Vercel (`cadence`).
 
-Ou via CLI:
+Sem variáveis de ambiente necessárias. Framework: **Next.js**.
+
+Via CLI (com a conta autenticada):
 
 ```bash
-npx vercel
+vercel link --yes --project cadence --scope barujafe1s-projects
+vercel deploy --prod --yes --scope barujafe1s-projects
 ```
+
+Ou dispare um novo deploy pelo dashboard da Vercel / push na `main`.
 
 ## Estrutura
 
