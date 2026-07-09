@@ -90,14 +90,14 @@ npm start
 
 ## Deploy
 
-### Produção
+### Produção (URL canônica)
 
-**https://cadence-ecru-three.vercel.app**
+**https://cadence-ochre-six.vercel.app**
 
-Projeto Vercel: `baruja-fe/cadence` · Framework: Next.js · Sem variáveis de ambiente.
+Projeto Vercel · Framework: Next.js · Sem variáveis de ambiente.
 
 ```bash
-vercel deploy --prod --yes --scope baruja-fe
+vercel deploy --prod --yes
 ```
 
 ## Estrutura
