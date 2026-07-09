@@ -90,22 +90,15 @@ npm start
 
 ## Deploy
 
-### Vercel
+### Produção
 
-O projeto **já está criado** na Vercel (`cadence`) e **conectado** ao GitHub.
+**https://cadence-ecru-three.vercel.app**
 
-Sem variáveis de ambiente. Framework: **Next.js**.
-
-> Nota: no momento da criação, a conta atingiu o limite diário de deploys do plano Free. Assim que o limite resetar (em até 24h), rode:
+Projeto Vercel: `baruja-fe/cadence` · Framework: Next.js · Sem variáveis de ambiente.
 
 ```bash
-cd ~/Projects/cadence
-vercel deploy --prod --yes --scope barujafe1s-projects
+vercel deploy --prod --yes --scope baruja-fe
 ```
-
-Ou faça um push vazio / “Redeploy” no dashboard da Vercel.
-
-URL esperada após o primeiro deploy: `https://cadence.vercel.app` (ou a URL que a Vercel atribuir ao projeto).
 
 ## Estrutura
 
