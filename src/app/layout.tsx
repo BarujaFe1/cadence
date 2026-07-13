@@ -31,7 +31,7 @@ export const metadata: Metadata = {
     title: "Cadence",
     description: "Rotina premium de estudo de idiomas, um bloco de cada vez.",
     type: "website",
-    url: "https://cadence-ochre-six.vercel.app",
+    url: "https://cadence-ecru-three.vercel.app",
   },
   icons: {
     icon: "/favicon.svg",

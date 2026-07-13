@@ -1,76 +1,82 @@
 # Cadence
 
-**Serene language-study routine companion.**
+**Local-first companion for a weekday language-study routine.**
 
-A calm, Apple-inspired web app for a weekday four-language habit — English → French → German → Spanish — with elegant timers, focus mode, and persistent history.
+Cadence helps you run a fixed four-block habit — English → French → German → Spanish — with timers, focus mode, and a simple history. It is a **lab / side project** for product taste and client-side domain modeling, not a data platform and not the center of a data-engineering portfolio.
 
-**Live demo:** https://cadence-ochre-six.vercel.app
+**Live demo (canonical):** https://cadence-ecru-three.vercel.app
 
-![Cadence — placeholder for product screenshot](./public/favicon.svg)
+<p align="center">
+  <img src="./docs/screenshots/today.png" alt="Cadence — Today view" width="900" />
+</p>
 
 ---
 
-## The problem
+## Problem & audience
 
-Studying multiple languages on Duolingo is easy to start and easy to abandon mid-routine. Without a lightweight coach for *order, duration, and consistency*, sessions blur together and streaks feel accidental.
+Studying multiple languages on tools like Duolingo is easy to start and easy to abandon mid-sequence. Cadence is for a single person who wants a calm coach for **order, duration, and consistency** — without accounts or dashboards.
 
-## The solution
+## Solution & flow
 
-Cadence turns the daily routine into four serene blocks:
-
-1. See today’s sequence at a glance  
+1. Open **Hoje** and see today’s four blocks  
 2. Start / pause / resume / complete each language  
-3. Feel progress through a quiet progress ring  
-4. Review history, streak, and weekly totals later  
+3. Optionally use **Foco** and keyboard shortcuts  
+4. Review **Histórico** (streak, weekly bars, totals)  
+5. Tune durations in **Ajustes**  
 
-Local-first: data stays in the browser. Open and go — no login.
+Data stays in the browser (`localStorage`). No login.
+
+---
+
+## What this project demonstrates
+
+- Product restraint and visual hierarchy for a habit loop  
+- Client-side session machine (timers + history status rules)  
+- Local-first persistence with sanitization and throttled writes  
+- DX: Vitest, ESLint, typecheck, GitHub Actions, honest docs  
+
+**What it does *not* claim:** analytics engineering, ML, multi-tenant SaaS, or enterprise readiness.
 
 ---
 
 ## Features
 
-- **Today** — ordered EN → FR → DE → ES blocks with configurable minutes  
-- **Timers** — start, pause, continue, reset, manual complete, next block  
-- **Focus mode** — quieter UI for deep sessions  
-- **History** — by day / by language, filters, weekly chart, streak  
-- **Settings** — durations, sound, focus default, demo seed  
-- **Keyboard** — `Space` play/pause · `N` next · `C` complete · `F` focus  
-- **Dark mode** — follows system preference  
-- **Onboarding** — first-visit tip for the core loop  
+- Ordered EN → FR → DE → ES blocks with configurable minutes  
+- Timers: start, pause, continue, reset, manual complete, next  
+- Focus mode + optional completion chime  
+- History by day / language, streak (weekdays), weekly chart  
+- First-visit tip, loading skeleton, confirm before clearing history  
+- Demo seed in Settings (for screenshots / interview demos)  
 
 ---
 
 ## Architecture
 
 ```text
-UI (App Router pages)
-  → Zustand store (session machine)
-    → domain helpers (pure)
-    → localStorage (sanitized persistence)
+UI (Next.js App Router)
+  → Zustand store (session orchestration)
+    → domain helpers (pure rules)
+    → localStorage (`cadence.v1`, sanitized)
 ```
 
-Details: [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md)
+Details: [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md) · decisions: [`docs/TECHNICAL_DECISIONS.md`](./docs/TECHNICAL_DECISIONS.md)
+
+### Stack
+
+Next.js 15 · React 19 · TypeScript · Tailwind CSS 4 · Framer Motion · Zustand · Vitest · GitHub Actions · Vercel
 
 ---
 
-## Stack
-
-- Next.js 15 · React 19 · TypeScript  
-- Tailwind CSS 4 · Framer Motion · Zustand  
-- Vitest · ESLint · GitHub Actions · Vercel  
-
----
-
-## Run locally
+## Quick start
 
 ```bash
 pnpm install
 pnpm dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000).
+Open http://localhost:3000 — no env vars required ([`.env.example`](./.env.example)).
 
-### Quality commands
+### Quality gates
 
 ```bash
 pnpm lint
@@ -81,84 +87,59 @@ pnpm build
 
 ---
 
-## Environment variables
+## Screenshots
 
-None required for app functionality.
+| Today | History | Settings |
+| --- | --- | --- |
+| ![Today](./docs/screenshots/today.png) | ![History](./docs/screenshots/history.png) | ![Settings](./docs/screenshots/settings.png) |
 
-See [`.env.example`](./.env.example). Persistence is `localStorage` only.
-
----
-
-## Tests
-
-Unit tests cover duration formatting, completion thresholds, streak logic, and session progress.
-
-See [`docs/TESTING.md`](./docs/TESTING.md).
+Capture notes: [`docs/screenshots/README.md`](./docs/screenshots/README.md)
 
 ---
 
-## Technical decisions & trade-offs
+## Demo script (≈4 minutes)
 
-- **Local-first over backend** — fastest habit loop; sync can come later  
-- **Throttle persistence while the timer runs** — avoid writing every second  
-- **Weekday streak** — weekends do not break Mon–Fri routines  
-- **Manual complete with 0 elapsed = planned duration** — check-off after studying outside the timer  
+1. Open the live demo → dismiss onboarding if shown  
+2. Start English → pause → resume (Space)  
+3. Complete a block manually (C) → advance (N)  
+4. Toggle focus (F)  
+5. Open History → explain streak / empty week vs totals  
+6. Settings → change a duration → optionally load demo history  
 
-More: [`docs/TECHNICAL_DECISIONS.md`](./docs/TECHNICAL_DECISIONS.md)
-
----
-
-## Deploy
-
-Canonical production URL: **https://cadence-ochre-six.vercel.app**
-
-```bash
-pnpm build
-vercel deploy --prod --yes
-```
-
-Guide: [`docs/DEPLOYMENT.md`](./docs/DEPLOYMENT.md)
+Full script: [`docs/DEMO_SCRIPT.md`](./docs/DEMO_SCRIPT.md)
 
 ---
 
-## Roadmap
+## Status & limitations
 
-- [ ] Optional cloud sync (opt-in)
-- [ ] Custom language order / fifth block
-- [ ] Export history (JSON/CSV)
-- [ ] Gentle browser notifications when a block ends
-- [ ] i18n UI (PT/EN)
+| Item | Reality |
+| --- | --- |
+| Role | **Laboratory / side project** (not home featured) |
+| Deploy | Public Vercel demo live |
+| Sync | None — single browser / origin |
+| Auth | None |
+| Timer drift | Possible when the tab is backgrounded |
+| Manual complete @ 0 elapsed | Credits planned duration (intentional check-off) |
 
-## Status
-
-**Lab / side-project · production demo live · portfolio quality pass in progress**
-
----
-
-## What this project demonstrates
-
-- Product taste: calm hierarchy, restraint, microinteractions  
-- Client-side domain modeling (session machine + history)  
-- Practical DX: lint, typecheck, tests, CI, docs  
-- Honest local-first trade-offs explained for reviewers  
-
-## How I would present this in an interview
-
-> “Cadence solves a real personal habit problem. I optimized for open → start in under five seconds. The interesting engineering is the session state machine, weekday streak semantics, and keeping the timer interval stable while persisting safely. I chose local-first on purpose; the domain layer is ready if sync becomes necessary.”
+Quality-pass is deployed to the canonical URL under the `baruja-fe` Vercel team. Prefer this URL over older aliases on other accounts.
 
 ---
 
-## Docs index
+## Interview talking points
+
+> “Cadence is a personal habit tool. The interesting part is the session state machine, weekday streak semantics, and keeping the timer interval stable while persisting safely. I kept it local-first on purpose so the product stays instant — and so it doesn’t pretend to be a data platform.”
+
+---
+
+## Docs
 
 | Doc | Purpose |
 | --- | --- |
-| [`docs/AUDIT_REPORT.md`](./docs/AUDIT_REPORT.md) | Audit findings |
-| [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md) | System design |
-| [`docs/TECHNICAL_DECISIONS.md`](./docs/TECHNICAL_DECISIONS.md) | ADRs / trade-offs |
-| [`docs/TESTING.md`](./docs/TESTING.md) | Test strategy |
-| [`docs/DEPLOYMENT.md`](./docs/DEPLOYMENT.md) | Ship guide |
-| [`docs/SECURITY_NOTES.md`](./docs/SECURITY_NOTES.md) | Privacy & secrets |
-| [`docs/HANDOFF.md`](./docs/HANDOFF.md) | Review handoff |
+| [`docs/PORTFOLIO_HANDOFF.md`](./docs/PORTFOLIO_HANDOFF.md) | Portfolio consolidation |
+| [`docs/AUDIT_REPORT.md`](./docs/AUDIT_REPORT.md) | Audit |
+| [`docs/HANDOFF.md`](./docs/HANDOFF.md) | Engineering handoff |
+| [`docs/DEPLOYMENT.md`](./docs/DEPLOYMENT.md) | Deploy |
+| [`docs/SECURITY_NOTES.md`](./docs/SECURITY_NOTES.md) | Privacy |
 
 ## License
 

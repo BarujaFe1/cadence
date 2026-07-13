@@ -75,13 +75,18 @@ function buildDemoHistory(): HistoryEntry[] {
     return `${y}-${m}-${dd}`;
   };
 
-  const day = (offset: number) => {
-    const d = new Date();
-    d.setDate(d.getDate() - offset);
-    while (d.getDay() === 0 || d.getDay() === 6) {
-      d.setDate(d.getDate() - 1);
+  /** Previous N distinct weekdays (Mon–Fri), walking back one calendar day at a time. */
+  const previousWeekdays = (count: number) => {
+    const dates: string[] = [];
+    const cursor = new Date();
+    cursor.setHours(12, 0, 0, 0);
+    while (dates.length < count) {
+      cursor.setDate(cursor.getDate() - 1);
+      const day = cursor.getDay();
+      if (day === 0 || day === 6) continue;
+      dates.push(formatLocal(cursor));
     }
-    return formatLocal(d);
+    return dates;
   };
 
   const langs: Array<{ id: LanguageId; name: string; planned: number }> = [
@@ -92,8 +97,7 @@ function buildDemoHistory(): HistoryEntry[] {
   ];
 
   const entries: HistoryEntry[] = [];
-  for (const offset of [1, 2, 3]) {
-    const date = day(offset);
+  for (const date of previousWeekdays(3)) {
     langs.forEach((lang, index) => {
       const started = new Date(`${date}T08:${String(10 + index * 12).padStart(2, "0")}:00`);
       const ended = new Date(started.getTime() + lang.planned * 1000);

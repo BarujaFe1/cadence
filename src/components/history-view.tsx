@@ -73,7 +73,7 @@ export function HistoryView() {
       </section>
 
       <section className="mb-8 grid gap-3 sm:grid-cols-3">
-        <Stat label="Streak" value={`${streak} dias`} />
+        <Stat label="Streak" value={streak === 1 ? "1 dia" : `${streak} dias`} />
         <Stat label="Esta semana" value={formatDuration(weekSeconds)} />
         <Stat label="Total acumulado" value={formatDuration(totalSeconds)} />
       </section>
@@ -92,10 +92,17 @@ export function HistoryView() {
                 <div
                   className={cn(
                     "w-full rounded-xl transition-all",
-                    day.isToday ? "bg-accent" : "bg-ink/25 dark:bg-ink/40",
+                    day.seconds <= 0 && "opacity-0",
+                    day.seconds > 0 && day.isToday && "bg-accent",
+                    day.seconds > 0 && !day.isToday && "bg-ink/25 dark:bg-ink/40",
                     day.isWeekend && "opacity-40",
                   )}
-                  style={{ height: `${Math.max(8, (day.seconds / maxWeek) * 100)}%` }}
+                  style={{
+                    height:
+                      day.seconds <= 0
+                        ? "0%"
+                        : `${Math.max(8, (day.seconds / maxWeek) * 100)}%`,
+                  }}
                   title={formatDuration(day.seconds)}
                 />
               </div>

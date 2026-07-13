@@ -3,7 +3,7 @@
 **Branch:** `chore/portfolio-quality-pass`  
 **Date:** 2026-07-13  
 **Repo:** [BarujaFe1/cadence](https://github.com/BarujaFe1/cadence)  
-**Canonical demo:** https://cadence-ochre-six.vercel.app
+**Canonical demo:** https://cadence-ecru-three.vercel.app
 
 ---
 
@@ -69,7 +69,7 @@ pnpm build         # ok
 - Real product screenshots in README (placeholder favicon only)
 - Optional cloud sync
 - E2E (Playwright) for timer flows
-- Connect GitHub ↔ Vercel on the account that owns `ochre-six` for auto-deploy
+- Connect GitHub ↔ Vercel on the account that owns `ecru-three` for auto-deploy
 - Export/import history JSON
 
 ---
@@ -85,7 +85,7 @@ pnpm build         # ok
 ## Portfolio suggestions
 
 - Keep card as **lab / side-project**, `featured: false`.
-- Demo CTA → `https://cadence-ochre-six.vercel.app`.
+- Demo CTA → `https://cadence-ecru-three.vercel.app`.
 - In interviews: emphasize session machine, habit semantics, and DX (tests/CI/docs).
 
 ---

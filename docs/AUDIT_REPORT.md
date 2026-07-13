@@ -24,7 +24,7 @@ Cadence is a polished local-first Next.js companion for a four-language Duolingo
 | UI | React 19 + Tailwind CSS 4 + Framer Motion |
 | State | Zustand |
 | Persistence | `localStorage` (`cadence.v1`) |
-| Deploy | Vercel (`cadence-ochre-six.vercel.app`) |
+| Deploy | Vercel (`cadence-ecru-three.vercel.app`) |
 | Auth / backend | None (intentional local-first) |
 
 ---

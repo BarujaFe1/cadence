@@ -2,7 +2,7 @@
 
 ## Production URL (canonical)
 
-https://cadence-ochre-six.vercel.app
+https://cadence-ecru-three.vercel.app
 
 ## Prerequisites
 
