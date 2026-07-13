@@ -1,128 +1,165 @@
 # Cadence
 
-**Rotina serena de estudo de idiomas.**
+**Serene language-study routine companion.**
 
-Cadence é um companion premium para acompanhar uma rotina diária de quatro idiomas — inglês, francês, alemão e espanhol — com timers elegantes, configuração simples e histórico persistente.
+A calm, Apple-inspired web app for a weekday four-language habit — English → French → German → Spanish — with elegant timers, focus mode, and persistent history.
 
-Feito para abrir rápido, usar sem atrito e sentir progresso a cada bloco.
+**Live demo:** https://cadence-ochre-six.vercel.app
+
+![Cadence — placeholder for product screenshot](./public/favicon.svg)
 
 ---
 
-## Conceito
+## The problem
 
-Um produto calmo, minimalista e refinado — inspirado na clareza de interfaces premium, sem imitar ninguém.
+Studying multiple languages on Duolingo is easy to start and easy to abandon mid-routine. Without a lightweight coach for *order, duration, and consistency*, sessions blur together and streaks feel accidental.
 
-- Um idioma de cada vez
-- Ritmo configurável
-- Feedback visual suave
-- Histórico que respeita sua consistência
+## The solution
+
+Cadence turns the daily routine into four serene blocks:
+
+1. See today’s sequence at a glance  
+2. Start / pause / resume / complete each language  
+3. Feel progress through a quiet progress ring  
+4. Review history, streak, and weekly totals later  
+
+Local-first: data stays in the browser. Open and go — no login.
+
+---
+
+## Features
+
+- **Today** — ordered EN → FR → DE → ES blocks with configurable minutes  
+- **Timers** — start, pause, continue, reset, manual complete, next block  
+- **Focus mode** — quieter UI for deep sessions  
+- **History** — by day / by language, filters, weekly chart, streak  
+- **Settings** — durations, sound, focus default, demo seed  
+- **Keyboard** — `Space` play/pause · `N` next · `C` complete · `F` focus  
+- **Dark mode** — follows system preference  
+- **Onboarding** — first-visit tip for the core loop  
+
+---
+
+## Architecture
+
+```text
+UI (App Router pages)
+  → Zustand store (session machine)
+    → domain helpers (pure)
+    → localStorage (sanitized persistence)
+```
+
+Details: [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md)
+
+---
 
 ## Stack
 
-- **Next.js 15** (App Router)
-- **TypeScript**
-- **React 19**
-- **Tailwind CSS 4**
-- **Zustand** (estado + persistência)
-- **Framer Motion** (microinterações)
-- **localStorage** (local-first, sem login)
+- Next.js 15 · React 19 · TypeScript  
+- Tailwind CSS 4 · Framer Motion · Zustand  
+- Vitest · ESLint · GitHub Actions · Vercel  
 
-## Por que local-first?
+---
 
-Para este escopo, persistência no navegador é a escolha mais sólida:
-
-- abre instantaneamente
-- funciona offline
-- zero configuração de backend
-- sem autenticação desnecessária
-- dados ficam no seu dispositivo
-
-## Funcionalidades
-
-### Hoje
-- Rotina na ordem: Inglês → Francês → Alemão → Espanhol
-- Timer por bloco com iniciar / pausar / continuar / reiniciar
-- Concluir manualmente e avançar para o próximo
-- Anel de progresso, status e celebração ao fechar o dia
-- Modo foco
-- Som opcional ao concluir
-- Atalhos de teclado
-
-### Histórico
-- Registros por data e idioma
-- Filtros
-- Totais semanais e por idioma
-- Streak de dias estudados (seg–sex)
-
-### Ajustes
-- Duração configurável por idioma
-- Preferências de som e foco
-- Reinício da rotina do dia
-
-## Atalhos
-
-| Tecla | Ação |
-| --- | --- |
-| `Espaço` | Iniciar / pausar / continuar |
-| `N` | Próximo bloco |
-| `C` | Concluir bloco atual |
-| `F` | Alternar modo foco |
-
-## Começar localmente
+## Run locally
 
 ```bash
-npm install
-npm run dev
+pnpm install
+pnpm dev
 ```
 
-Abra [http://localhost:3000](http://localhost:3000).
+Open [http://localhost:3000](http://localhost:3000).
 
-## Build
+### Quality commands
 
 ```bash
-npm run build
-npm start
+pnpm lint
+pnpm typecheck
+pnpm test
+pnpm build
 ```
 
-## Repositório
+---
 
-- GitHub: [github.com/BarujaFe1/cadence](https://github.com/BarujaFe1/cadence)
+## Environment variables
+
+None required for app functionality.
+
+See [`.env.example`](./.env.example). Persistence is `localStorage` only.
+
+---
+
+## Tests
+
+Unit tests cover duration formatting, completion thresholds, streak logic, and session progress.
+
+See [`docs/TESTING.md`](./docs/TESTING.md).
+
+---
+
+## Technical decisions & trade-offs
+
+- **Local-first over backend** — fastest habit loop; sync can come later  
+- **Throttle persistence while the timer runs** — avoid writing every second  
+- **Weekday streak** — weekends do not break Mon–Fri routines  
+- **Manual complete with 0 elapsed = planned duration** — check-off after studying outside the timer  
+
+More: [`docs/TECHNICAL_DECISIONS.md`](./docs/TECHNICAL_DECISIONS.md)
+
+---
 
 ## Deploy
 
-### Produção (URL canônica)
-
-**https://cadence-ochre-six.vercel.app**
-
-Projeto Vercel · Framework: Next.js · Sem variáveis de ambiente.
+Canonical production URL: **https://cadence-ochre-six.vercel.app**
 
 ```bash
+pnpm build
 vercel deploy --prod --yes
 ```
 
-## Estrutura
+Guide: [`docs/DEPLOYMENT.md`](./docs/DEPLOYMENT.md)
 
-```text
-src/
-  app/                 # rotas (Hoje, Histórico, Ajustes)
-  components/          # UI do produto
-  lib/                 # tipos, defaults, utils, storage
-  store/               # estado Zustand + timer
-public/
-  favicon.svg
-```
+---
 
-## Defaults sugeridos
+## Roadmap
 
-| Idioma | Tempo |
+- [ ] Optional cloud sync (opt-in)
+- [ ] Custom language order / fifth block
+- [ ] Export history (JSON/CSV)
+- [ ] Gentle browser notifications when a block ends
+- [ ] i18n UI (PT/EN)
+
+## Status
+
+**Lab / side-project · production demo live · portfolio quality pass in progress**
+
+---
+
+## What this project demonstrates
+
+- Product taste: calm hierarchy, restraint, microinteractions  
+- Client-side domain modeling (session machine + history)  
+- Practical DX: lint, typecheck, tests, CI, docs  
+- Honest local-first trade-offs explained for reviewers  
+
+## How I would present this in an interview
+
+> “Cadence solves a real personal habit problem. I optimized for open → start in under five seconds. The interesting engineering is the session state machine, weekday streak semantics, and keeping the timer interval stable while persisting safely. I chose local-first on purpose; the domain layer is ready if sync becomes necessary.”
+
+---
+
+## Docs index
+
+| Doc | Purpose |
 | --- | --- |
-| Inglês | 10 min |
-| Francês | 8 min |
-| Alemão | 12 min |
-| Espanhol | 10 min |
+| [`docs/AUDIT_REPORT.md`](./docs/AUDIT_REPORT.md) | Audit findings |
+| [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md) | System design |
+| [`docs/TECHNICAL_DECISIONS.md`](./docs/TECHNICAL_DECISIONS.md) | ADRs / trade-offs |
+| [`docs/TESTING.md`](./docs/TESTING.md) | Test strategy |
+| [`docs/DEPLOYMENT.md`](./docs/DEPLOYMENT.md) | Ship guide |
+| [`docs/SECURITY_NOTES.md`](./docs/SECURITY_NOTES.md) | Privacy & secrets |
+| [`docs/HANDOFF.md`](./docs/HANDOFF.md) | Review handoff |
 
-Tudo editável em **Ajustes**.
+## License
 
-## Licença
-
-Uso pessoal / portfólio.
+Personal / portfolio use.

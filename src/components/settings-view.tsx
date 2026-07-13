@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { LoadingSkeleton } from "@/components/loading-skeleton";
 import { formatMinutesLabel } from "@/lib/utils";
 import { useCadenceStore } from "@/store/use-cadence-store";
 
@@ -11,13 +12,10 @@ export function SettingsView() {
   const setSoundEnabled = useCadenceStore((state) => state.setSoundEnabled);
   const setFocusModeDefault = useCadenceStore((state) => state.setFocusModeDefault);
   const resetToday = useCadenceStore((state) => state.resetToday);
+  const loadDemoData = useCadenceStore((state) => state.loadDemoData);
 
   if (!hydrated) {
-    return (
-      <div className="mx-auto flex min-h-[60vh] max-w-3xl items-center justify-center px-4">
-        <div className="h-10 w-10 rounded-full border border-line border-t-accent animate-spin" />
-      </div>
-    );
+    return <LoadingSkeleton />;
   }
 
   const languages = [...settings.languages].sort((a, b) => a.order - b.order);
@@ -118,9 +116,23 @@ export function SettingsView() {
           Reinicia a rotina de hoje sem apagar o histórico. Útil se quiser recomeçar o
           dia do zero.
         </p>
-        <div className="mt-5">
+        <div className="mt-5 flex flex-wrap gap-3">
           <Button variant="secondary" onClick={resetToday}>
             Reiniciar rotina de hoje
+          </Button>
+          <Button
+            variant="ghost"
+            onClick={() => {
+              if (
+                window.confirm(
+                  "Carregar dados de demonstração no histórico? Isso substitui o histórico atual.",
+                )
+              ) {
+                loadDemoData();
+              }
+            }}
+          >
+            Carregar demo no histórico
           </Button>
         </div>
       </section>

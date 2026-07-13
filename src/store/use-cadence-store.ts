@@ -2,6 +2,11 @@
 
 import { create } from "zustand";
 import { createDaySession, DEFAULT_SETTINGS } from "@/lib/defaults";
+import {
+  findNextRunnableIndex,
+  resolveActualSeconds,
+  resolveHistoryStatus,
+} from "@/lib/domain";
 import { loadState, saveState } from "@/lib/storage";
 import type {
   DaySession,
@@ -19,6 +24,7 @@ interface CadenceState {
   celebration: boolean;
   hydrate: () => void;
   tick: () => void;
+  flushPersist: () => void;
   startBlock: (index?: number) => void;
   pauseBlock: () => void;
   resumeBlock: () => void;
@@ -32,13 +38,25 @@ interface CadenceState {
   resetToday: () => void;
   clearHistory: () => void;
   dismissCelebration: () => void;
+  loadDemoData: () => void;
 }
 
-function persist(partial: {
-  settings: Settings;
-  session: DaySession;
-  history: HistoryEntry[];
-}) {
+let lastPersistAt = 0;
+const PERSIST_THROTTLE_MS = 4000;
+
+function persist(
+  partial: {
+    settings: Settings;
+    session: DaySession;
+    history: HistoryEntry[];
+  },
+  options: { force?: boolean } = {},
+) {
+  const now = Date.now();
+  if (!options.force && now - lastPersistAt < PERSIST_THROTTLE_MS) {
+    return;
+  }
+  lastPersistAt = now;
   saveState({
     ...partial,
     lastActiveDate: todayKey(),
@@ -47,6 +65,55 @@ function persist(partial: {
 
 function languageName(settings: Settings, id: LanguageId) {
   return settings.languages.find((language) => language.id === id)?.namePt ?? id;
+}
+
+function buildDemoHistory(): HistoryEntry[] {
+  const formatLocal = (d: Date) => {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const dd = String(d.getDate()).padStart(2, "0");
+    return `${y}-${m}-${dd}`;
+  };
+
+  const day = (offset: number) => {
+    const d = new Date();
+    d.setDate(d.getDate() - offset);
+    while (d.getDay() === 0 || d.getDay() === 6) {
+      d.setDate(d.getDate() - 1);
+    }
+    return formatLocal(d);
+  };
+
+  const langs: Array<{ id: LanguageId; name: string; planned: number }> = [
+    { id: "en", name: "Inglês", planned: 600 },
+    { id: "fr", name: "Francês", planned: 480 },
+    { id: "de", name: "Alemão", planned: 720 },
+    { id: "es", name: "Espanhol", planned: 600 },
+  ];
+
+  const entries: HistoryEntry[] = [];
+  for (const offset of [1, 2, 3]) {
+    const date = day(offset);
+    langs.forEach((lang, index) => {
+      const started = new Date(`${date}T08:${String(10 + index * 12).padStart(2, "0")}:00`);
+      const ended = new Date(started.getTime() + lang.planned * 1000);
+      entries.push({
+        id: `demo_${date}_${lang.id}`,
+        date,
+        languageId: lang.id,
+        languageName: lang.name,
+        plannedSeconds: lang.planned,
+        actualSeconds: lang.planned,
+        status: "completed",
+        startedAt: started.toISOString(),
+        endedAt: ended.toISOString(),
+        dayTotalSeconds: langs.reduce((s, l) => s + l.planned, 0),
+        dayCompletedBlocks: 4,
+      });
+    });
+  }
+
+  return entries;
 }
 
 export const useCadenceStore = create<CadenceState>((set, get) => ({
@@ -65,6 +132,11 @@ export const useCadenceStore = create<CadenceState>((set, get) => ({
       history: state.history,
       celebration: false,
     });
+  },
+
+  flushPersist: () => {
+    const { settings, session, history } = get();
+    persist({ settings, session, history }, { force: true });
   },
 
   tick: () => {
@@ -102,9 +174,7 @@ export const useCadenceStore = create<CadenceState>((set, get) => ({
     const target =
       typeof index === "number"
         ? index
-        : session.blocks.findIndex(
-            (block) => block.status === "pending" || block.status === "paused",
-          );
+        : findNextRunnableIndex(session.blocks);
 
     if (target < 0 || target >= session.blocks.length) return;
 
@@ -138,7 +208,7 @@ export const useCadenceStore = create<CadenceState>((set, get) => ({
     };
 
     set({ session: nextSession, celebration: false });
-    persist({ settings, session: nextSession, history });
+    persist({ settings, session: nextSession, history }, { force: true });
   },
 
   pauseBlock: () => {
@@ -156,7 +226,7 @@ export const useCadenceStore = create<CadenceState>((set, get) => ({
     };
 
     set({ session: nextSession });
-    persist({ settings, session: nextSession, history });
+    persist({ settings, session: nextSession, history }, { force: true });
   },
 
   resumeBlock: () => {
@@ -170,7 +240,6 @@ export const useCadenceStore = create<CadenceState>((set, get) => ({
     const target = typeof index === "number" ? index : session.activeIndex;
     if (target === null || target < 0) return;
 
-    const block = session.blocks[target];
     const nextSession: DaySession = {
       ...session,
       activeIndex: session.activeIndex === target ? null : session.activeIndex,
@@ -189,10 +258,8 @@ export const useCadenceStore = create<CadenceState>((set, get) => ({
       ),
     };
 
-    // If resetting a previously logged incomplete attempt mid-session, keep history as-is.
-    void block;
     set({ session: nextSession, celebration: false });
-    persist({ settings, session: nextSession, history });
+    persist({ settings, session: nextSession, history }, { force: true });
   },
 
   completeBlock: (index, manual = true) => {
@@ -204,19 +271,13 @@ export const useCadenceStore = create<CadenceState>((set, get) => ({
     if (!block || block.status === "completed") return;
 
     const endedAt = new Date().toISOString();
-    const actualSeconds = Math.max(
-      1,
-      manual && block.elapsedSeconds === 0
-        ? block.plannedSeconds
-        : block.elapsedSeconds || block.plannedSeconds - block.remainingSeconds,
-    );
-
-    const status: HistoryEntry["status"] =
-      actualSeconds >= block.plannedSeconds * 0.9
-        ? "completed"
-        : actualSeconds >= block.plannedSeconds * 0.35
-          ? "partial"
-          : "interrupted";
+    const actualSeconds = resolveActualSeconds({
+      manual,
+      elapsedSeconds: block.elapsedSeconds,
+      plannedSeconds: block.plannedSeconds,
+      remainingSeconds: block.remainingSeconds,
+    });
+    const status = resolveHistoryStatus(actualSeconds, block.plannedSeconds);
 
     const nextBlocks = session.blocks.map((item, i) =>
       i === target
@@ -269,33 +330,23 @@ export const useCadenceStore = create<CadenceState>((set, get) => ({
       history: nextHistory,
       celebration: allDone,
     });
-    persist({ settings, session: nextSession, history: nextHistory });
+    persist({ settings, session: nextSession, history: nextHistory }, { force: true });
   },
 
   nextBlock: () => {
     const { session } = get();
-    const nextIndex = session.blocks.findIndex(
-      (block, index) =>
-        index > (session.activeIndex ?? -1) &&
-        (block.status === "pending" || block.status === "paused"),
+    const nextIndex = findNextRunnableIndex(
+      session.blocks,
+      session.activeIndex ?? -1,
     );
-
-    if (nextIndex >= 0) {
-      get().startBlock(nextIndex);
-      return;
-    }
-
-    const firstPending = session.blocks.findIndex(
-      (block) => block.status === "pending" || block.status === "paused",
-    );
-    if (firstPending >= 0) get().startBlock(firstPending);
+    if (nextIndex >= 0) get().startBlock(nextIndex);
   },
 
   setFocusMode: (value) => {
     const { session, settings, history } = get();
     const nextSession = { ...session, focusMode: value };
     set({ session: nextSession });
-    persist({ settings, session: nextSession, history });
+    persist({ settings, session: nextSession, history }, { force: true });
   },
 
   updateLanguageMinutes: (id, minutes) => {
@@ -327,35 +378,42 @@ export const useCadenceStore = create<CadenceState>((set, get) => ({
     };
 
     set({ settings: nextSettings, session: nextSession });
-    persist({ settings: nextSettings, session: nextSession, history });
+    persist({ settings: nextSettings, session: nextSession, history }, { force: true });
   },
 
   setSoundEnabled: (value) => {
     const { settings, session, history } = get();
     const nextSettings = { ...settings, soundEnabled: value };
     set({ settings: nextSettings });
-    persist({ settings: nextSettings, session, history });
+    persist({ settings: nextSettings, session, history }, { force: true });
   },
 
   setFocusModeDefault: (value) => {
     const { settings, session, history } = get();
     const nextSettings = { ...settings, focusModeDefault: value };
     set({ settings: nextSettings });
-    persist({ settings: nextSettings, session, history });
+    persist({ settings: nextSettings, session, history }, { force: true });
   },
 
   resetToday: () => {
     const { settings, history } = get();
     const nextSession = createDaySession(settings);
     set({ session: nextSession, celebration: false });
-    persist({ settings, session: nextSession, history });
+    persist({ settings, session: nextSession, history }, { force: true });
   },
 
   clearHistory: () => {
     const { settings, session } = get();
     set({ history: [] });
-    persist({ settings, session, history: [] });
+    persist({ settings, session, history: [] }, { force: true });
   },
 
   dismissCelebration: () => set({ celebration: false }),
+
+  loadDemoData: () => {
+    const { settings, session } = get();
+    const history = buildDemoHistory();
+    set({ history });
+    persist({ settings, session, history }, { force: true });
+  },
 }));

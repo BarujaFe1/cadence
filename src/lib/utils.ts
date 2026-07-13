@@ -4,13 +4,13 @@ import {
   format,
   isToday,
   isYesterday,
-  parseISO,
   startOfWeek,
   eachDayOfInterval,
   endOfWeek,
   isSameDay,
 } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { parseDateKey } from "./domain";
 import type { HistoryEntry, LanguageId, SessionBlock } from "./types";
 
 export function cn(...inputs: ClassValue[]) {
@@ -40,7 +40,11 @@ export function formatMinutesLabel(minutes: number) {
 
 export function formatClock(iso: string | null) {
   if (!iso) return "—";
-  return format(parseISO(iso), "HH:mm");
+  try {
+    return format(new Date(iso), "HH:mm");
+  } catch {
+    return "—";
+  }
 }
 
 function capitalizePt(value: string) {
@@ -49,7 +53,7 @@ function capitalizePt(value: string) {
 }
 
 export function formatFriendlyDate(dateKey: string) {
-  const date = parseISO(dateKey);
+  const date = parseDateKey(dateKey);
   if (isToday(date)) return "Hoje";
   if (isYesterday(date)) return "Ontem";
   return capitalizePt(format(date, "EEEE, d MMM", { locale: ptBR }));
@@ -57,7 +61,7 @@ export function formatFriendlyDate(dateKey: string) {
 
 export function formatLongDate(dateKey: string) {
   return capitalizePt(
-    format(parseISO(dateKey), "EEEE, d 'de' MMMM", { locale: ptBR }),
+    format(parseDateKey(dateKey), "EEEE, d 'de' MMMM", { locale: ptBR }),
   );
 }
 
@@ -96,6 +100,10 @@ export function sessionProgress(blocks: SessionBlock[]) {
   };
 }
 
+/**
+ * Streak counts weekdays (Mon–Fri) that have at least one completed block entry.
+ * Weekends are skipped so Saturday/Sunday do not break the habit chain.
+ */
 export function computeStreak(history: HistoryEntry[], today = todayKey()) {
   const completedDays = new Set(
     history
@@ -105,26 +113,26 @@ export function computeStreak(history: HistoryEntry[], today = todayKey()) {
 
   if (completedDays.size === 0) return 0;
 
-  let cursor = parseISO(today);
-  // If today has no completion yet, start from yesterday so streak doesn't break mid-day.
+  let cursor = parseDateKey(today);
   if (!completedDays.has(todayKey(cursor))) {
-    cursor = new Date(cursor.getTime() - 24 * 60 * 60 * 1000);
+    cursor = new Date(cursor.getFullYear(), cursor.getMonth(), cursor.getDate() - 1);
   }
 
   let streak = 0;
-  while (true) {
+  // Safety bound: never loop more than ~2 years of weekdays.
+  for (let i = 0; i < 600; i += 1) {
     const key = todayKey(cursor);
     const day = cursor.getDay();
     const isWeekend = day === 0 || day === 6;
 
     if (isWeekend) {
-      cursor = new Date(cursor.getTime() - 24 * 60 * 60 * 1000);
+      cursor = new Date(cursor.getFullYear(), cursor.getMonth(), cursor.getDate() - 1);
       continue;
     }
 
     if (!completedDays.has(key)) break;
     streak += 1;
-    cursor = new Date(cursor.getTime() - 24 * 60 * 60 * 1000);
+    cursor = new Date(cursor.getFullYear(), cursor.getMonth(), cursor.getDate() - 1);
   }
 
   return streak;

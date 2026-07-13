@@ -23,14 +23,15 @@ const instrument = Instrument_Serif({
 export const metadata: Metadata = {
   title: "Cadence — Rotina de idiomas",
   description:
-    "Um companion sereno para sua rotina diária de estudo de idiomas. Timers elegantes, histórico e foco.",
+    "Companion sereno para rotina diária de estudo de idiomas. Timers por bloco, histórico, streak e modo foco — local-first.",
   applicationName: "Cadence",
-  authors: [{ name: "Cadence" }],
-  keywords: ["idiomas", "rotina", "timer", "estudo", "duolingo", "foco"],
+  authors: [{ name: "Felipe Alirio Baruja" }],
+  keywords: ["idiomas", "rotina", "timer", "estudo", "foco", "habit", "local-first"],
   openGraph: {
     title: "Cadence",
     description: "Rotina premium de estudo de idiomas, um bloco de cada vez.",
     type: "website",
+    url: "https://cadence-ochre-six.vercel.app",
   },
   icons: {
     icon: "/favicon.svg",

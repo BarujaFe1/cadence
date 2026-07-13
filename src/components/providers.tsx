@@ -6,9 +6,14 @@ import { useCadenceStore } from "@/store/use-cadence-store";
 export function Providers({ children }: { children: React.ReactNode }) {
   const hydrate = useCadenceStore((state) => state.hydrate);
   const tick = useCadenceStore((state) => state.tick);
+  const flushPersist = useCadenceStore((state) => state.flushPersist);
   const hydrated = useCadenceStore((state) => state.hydrated);
   const activeIndex = useCadenceStore((state) => state.session.activeIndex);
-  const blocks = useCadenceStore((state) => state.session.blocks);
+  const activeStatus = useCadenceStore((state) =>
+    state.session.activeIndex === null
+      ? null
+      : state.session.blocks[state.session.activeIndex]?.status ?? null,
+  );
   const startBlock = useCadenceStore((state) => state.startBlock);
   const pauseBlock = useCadenceStore((state) => state.pauseBlock);
   const resumeBlock = useCadenceStore((state) => state.resumeBlock);
@@ -21,14 +26,30 @@ export function Providers({ children }: { children: React.ReactNode }) {
     hydrate();
   }, [hydrate]);
 
+  // Stable timer: depend on activeIndex + status, NOT the blocks array
+  // (blocks change every second and would reset the interval).
   useEffect(() => {
-    if (!hydrated || activeIndex === null) return;
-    const block = blocks[activeIndex];
-    if (!block || block.status !== "active") return;
+    if (!hydrated || activeIndex === null || activeStatus !== "active") return;
 
     const id = window.setInterval(() => tick(), 1000);
     return () => window.clearInterval(id);
-  }, [hydrated, activeIndex, blocks, tick]);
+  }, [hydrated, activeIndex, activeStatus, tick]);
+
+  useEffect(() => {
+    const onVisibility = () => {
+      if (document.visibilityState === "hidden") {
+        flushPersist();
+      }
+    };
+    const onPageHide = () => flushPersist();
+    window.addEventListener("visibilitychange", onVisibility);
+    window.addEventListener("pagehide", onPageHide);
+    return () => {
+      window.removeEventListener("visibilitychange", onVisibility);
+      window.removeEventListener("pagehide", onPageHide);
+      flushPersist();
+    };
+  }, [flushPersist]);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -42,15 +63,19 @@ export function Providers({ children }: { children: React.ReactNode }) {
         return;
       }
 
+      const { session } = useCadenceStore.getState();
+      const currentIndex = session.activeIndex;
+      const currentBlock =
+        currentIndex === null ? null : session.blocks[currentIndex];
+
       if (event.code === "Space") {
         event.preventDefault();
-        if (activeIndex === null) {
+        if (currentIndex === null) {
           startBlock();
           return;
         }
-        const block = blocks[activeIndex];
-        if (block?.status === "active") pauseBlock();
-        else if (block?.status === "paused") resumeBlock();
+        if (currentBlock?.status === "active") pauseBlock();
+        else if (currentBlock?.status === "paused") resumeBlock();
         else startBlock();
       }
 
@@ -73,8 +98,6 @@ export function Providers({ children }: { children: React.ReactNode }) {
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [
-    activeIndex,
-    blocks,
     startBlock,
     pauseBlock,
     resumeBlock,

@@ -12,6 +12,8 @@ import {
 } from "lucide-react";
 import { Celebration } from "@/components/celebration";
 import { LanguageRow } from "@/components/language-row";
+import { LoadingSkeleton } from "@/components/loading-skeleton";
+import { OnboardingTip } from "@/components/onboarding-tip";
 import { ProgressRing } from "@/components/progress-ring";
 import { Button } from "@/components/ui/button";
 import {
@@ -40,11 +42,7 @@ export function TodayView() {
   const setSoundEnabled = useCadenceStore((state) => state.setSoundEnabled);
 
   if (!hydrated) {
-    return (
-      <div className="mx-auto flex min-h-[60vh] max-w-5xl items-center justify-center px-4">
-        <div className="h-10 w-10 rounded-full border border-line border-t-accent animate-spin" />
-      </div>
-    );
+    return <LoadingSkeleton />;
   }
 
   const languages = [...settings.languages].sort((a, b) => a.order - b.order);
@@ -140,7 +138,11 @@ export function TodayView() {
                       ? "Concluído"
                       : "Próximo")}
                 </p>
-                <p className="timer-digits display mt-2 text-6xl text-ink sm:text-7xl">
+                <p
+                  className="timer-digits display mt-2 text-6xl text-ink sm:text-7xl"
+                  aria-live="polite"
+                  aria-atomic="true"
+                >
                   {activeBlock
                     ? formatDuration(activeBlock.remainingSeconds)
                     : formatDuration(
@@ -305,6 +307,7 @@ export function TodayView() {
           </AnimatePresence>
         </section>
       </div>
+      <OnboardingTip />
       <Celebration />
     </>
   );

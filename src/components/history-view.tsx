@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { formatDuration, formatFriendlyDate, formatClock, totalsByLanguage, weeklyTotals, computeStreak } from "@/lib/utils";
 import type { HistoryEntry, LanguageId } from "@/lib/types";
 import { useCadenceStore } from "@/store/use-cadence-store";
+import { LoadingSkeleton } from "@/components/loading-skeleton";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -58,11 +59,7 @@ export function HistoryView() {
   const maxWeek = Math.max(...week.map((day) => day.seconds), 1);
 
   if (!hydrated) {
-    return (
-      <div className="mx-auto flex min-h-[60vh] max-w-5xl items-center justify-center px-4">
-        <div className="h-10 w-10 rounded-full border border-line border-t-accent animate-spin" />
-      </div>
-    );
+    return <LoadingSkeleton />;
   }
 
   return (
@@ -222,7 +219,18 @@ export function HistoryView() {
 
       {history.length > 0 ? (
         <div className="mt-10 flex justify-center">
-          <Button variant="ghost" onClick={clearHistory}>
+          <Button
+            variant="ghost"
+            onClick={() => {
+              if (
+                window.confirm(
+                  "Apagar todo o histórico? Esta ação não pode ser desfeita.",
+                )
+              ) {
+                clearHistory();
+              }
+            }}
+          >
             Limpar histórico
           </Button>
         </div>
